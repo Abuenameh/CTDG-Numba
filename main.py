@@ -40,7 +40,7 @@ np.random.seed()
 xi = np.zeros(L)
 
 def runtau(f0, E0, tau):
-    r = ode(odesfwd).set_integrator('zvode', method='bdf', nsteps=10000)
+    r = ode(odesfwd).set_integrator('zvode', method='bdf', nsteps=1000000)
     r.set_initial_value(f0).set_f_params(L, nmax, mu, Wi, Wf, tau, xi)
     tf = 2*tau
     r.integrate(tf)
@@ -80,7 +80,7 @@ def main():
 
     E0 = E(f0, L, nmax, mu, Wi, xi)
 
-    taus = np.linspace(1e-10, 1e-9, nthreads)
+    taus = np.linspace(1e-7, 3.23529e-7, nthreads)
     ntaus = len(taus)
 
     pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage(), ' ', progressbar.Bar(), ' ', progressbar.Timer()], maxval=ntaus).start()
