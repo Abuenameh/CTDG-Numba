@@ -62,7 +62,13 @@ while os.path.exists(resdir + resifile(resi)):
     resi += 1
 
 seed = int(sys.argv[1])
-Delta = 0
+Delta = float(sys.argv[3])
+taui = float(sys.argv[4])
+tauf = float(sys.argv[5])
+ntaus = int(sys.argv[6])
+tau1 = int(sys.argv[7])
+taun = int(sys.argv[8])
+
 def main():
     start = datetime.datetime.now()
 
@@ -80,8 +86,7 @@ def main():
 
     E0 = E(f0, L, nmax, mu, Wi, xi)
 
-    taus = np.linspace(1e-7, 3.23529e-7, nthreads)
-    ntaus = len(taus)
+    taus = np.linspace(taui, tauf, ntaus)[tau1:tau1+taun]
 
     pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage(), ' ', progressbar.Bar(), ' ', progressbar.Timer()], maxval=ntaus).start()
 
@@ -120,6 +125,7 @@ def main():
     resultsfile = open(resdir + 'res.'+str(resi)+'.txt', 'w')
     resultsstr = ''
     resultsstr += 'seed['+str(resi)+']='+str(seed)+';\n'
+    resultsstr += 'Delta['+str(resi)+']='+mathematica(Delta)+';\n'
     resultsstr += 'xires['+str(resi)+']='+mathematica(xi)+';\n'
     resultsstr += 'f0res['+str(resi)+']='+mathematica(f0)+';\n'
     resultsstr += 'E0res['+str(resi)+']='+mathematica(E0)+';\n'
