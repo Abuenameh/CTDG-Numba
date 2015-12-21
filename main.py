@@ -10,6 +10,7 @@ import sys
 import os
 import datetime
 import struct
+import progressbar
 
 def mathematica(x):
     if x == 'True' or x == 'False':
@@ -82,6 +83,9 @@ def main():
 
     taus = np.linspace(1e-11, 1.1e-11, nthreads)
     ntaus = len(taus)
+
+    pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage(), ' ', progressbar.Bar(), ' ', progressbar.Timer()], maxval=ntaus).start()
+
     success = []
     taures = []
     ffres = []
@@ -90,9 +94,9 @@ def main():
     pres = []
     b0res = []
     bfres = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
         futures = [executor.submit(runtau, f0, E0, scale*tau) for tau in taus]
-        for future in concurrent.futures.as_completed(futures):
+        for future in pbar(concurrent.futures.as_completed(futures)):
             result = future.result()
             success.append(result[0])
             taures.append(result[1])
