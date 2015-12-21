@@ -29,7 +29,7 @@ def resifile(i):
 def odesfwd(t, f, L, nmax, mu, Wi, Wf, tau, xi):
     return odes(t, f, L, nmax, mu, Wi, Wf, tau, xi)
 
-L = 5
+L = 25
 nmax = 7
 dim = nmax+1
 
