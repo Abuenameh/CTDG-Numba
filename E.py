@@ -1,7 +1,5 @@
 
-#from libc.math cimport sqrt, pow
 import numpy as np
-#cimport numpy as np
 from parms import g, U0t, Ut, Jt
 from numba import jit, int64, float64, complex128
 
@@ -256,8 +254,8 @@ def E7(f, i, j1, j2, k1, k2, n, m, p, q, mu, U0, dU, J):
 		Ef += 0.5*n*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[i]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.) + 0.5*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[j2]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.) - 0.5*m*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[j2]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.) - 0.5*p*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[j2]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.) - 0.5*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[k2]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.) + 0.5*q*f[i,1 + n].conjugate()*f[j2,p].conjugate()*f[k2,q].conjugate()*dU[k2]*f[i,n]*f[j2,m]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(1 - m + n,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.)
 	return Ef
 
-@jit(complex128(complex128[:],int64,int64,float64,float64,float64[:],float64), nopython=True, cache=True)
-def E(f, L, nmax, mu, W, xi, scale):
+@jit(complex128(complex128[:],int64,int64,float64,float64,float64[:]), nopython=True, cache=True)
+def E(f, L, nmax, mu, W, xi):
 	fin = f.reshape((L, nmax+1))
 	U0 = U0t(W)
 	Wi = W * xi
@@ -289,4 +287,4 @@ def E(f, L, nmax, mu, W, xi, scale):
 									else:
 										Ef += E7(fin, i, j1, j2, k1, k2, n, m, p, q, mu, U0, dU, J)
 
-	return Ef/scale
+	return Ef

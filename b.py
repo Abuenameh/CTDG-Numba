@@ -2083,8 +2083,8 @@ def S22b4(f, i, j1, j2, k1, k2, ib, n, m, p, q, nb, mb, mu, U0, dU, J):
 		bf += -(f[i,1 + n].conjugate()*f[j2,-1 + m].conjugate()*f[k2,q].conjugate()*f[i,n]*f[j2,nb]*f[k2,-1 + q]*g(n,m)*g(-1 + q,1 + p)*J[i]*J[j2]*pow(-1 - p + q,-1.)*pow(U0,-1.)*pow((1 - m + n)*U0 + (-1 - p + q)*U0,-1.)*sqrt(nb))/4.
 	return bf
 
-@jit(complex128[:](complex128[:],int64,int64,float64,float64,float64[:],float64), nopython=True, cache=True)
-def b(f, L, nmax, mu, W, xi, scale):
+@jit(complex128[:](complex128[:],int64,int64,float64,float64,float64[:]), nopython=True, cache=True)
+def b(f, L, nmax, mu, W, xi):
 	fin = f.reshape((L, nmax+1))
 	U0 = U0t(W)
 	Wi = W * xi

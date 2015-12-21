@@ -744,8 +744,8 @@ def Edf(f, id, nd, L, nmax, mu, U0, dU, J):
 
 	return Edff
 
-@jit(complex128[:](float64,complex128[:],int64,int64,float64,float64,float64,float64,float64[:],float64), nopython=True, cache=True)
-def odes(t, f, L, nmax, mu, Wi, Wf, tau, xi, scale):
+@jit(complex128[:](float64,complex128[:],int64,int64,float64,float64,float64,float64,float64[:]), nopython=True, cache=True)
+def odes(t, f, L, nmax, mu, Wi, Wf, tau, xi):
 	fin = f.reshape((L, nmax+1))
 	odesf = np.zeros_like(fin)
 	W = Wt(t, Wi, Wf, tau)
@@ -763,5 +763,4 @@ def odes(t, f, L, nmax, mu, Wi, Wf, tau, xi, scale):
 		for n in range(nmax+1):
 			odesf[i, n] = S1dtdf(fin, i, n, L, nmax, mu, U0, dU, J, U0p, Jp) - 1j * Edf(fin, i, n, L, nmax, mu, U0, dU, J)
 
-	odesf /= scale
 	return odesf.reshape((L*(nmax+1),))
