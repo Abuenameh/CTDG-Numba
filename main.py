@@ -13,7 +13,7 @@ import struct
 import progressbar
 
 def mathematica(x):
-    if x == 'True' or x == 'False':
+    if x is 'True' or x is 'False':
         return x
     try:
         return '{' + ','.join([mathematica(xi) for xi in iter(x)]) + '}'
@@ -26,8 +26,8 @@ def mathematica(x):
 def resifile(i):
     return 'res.' + str(i) + '.txt'
 
-def odesfwd(t, f, L, nmax, mu, Wi, Wf, tau, xi, scale):
-    return odes(t, f, L, nmax, mu, Wi, Wf, tau, xi, scale)
+def odesfwd(t, f, L, nmax, mu, Wi, Wf, tau, xi):
+    return odes(t, f, L, nmax, mu, Wi, Wf, tau, xi)
 
 L = 5
 nmax = 7
@@ -38,38 +38,37 @@ Wf = 1e11
 mu = 0.5*Ui(Wi)
 np.random.seed()
 xi = np.zeros(L)
-scale = 1
 
 def runtau(f0, E0, tau):
     r = ode(odesfwd).set_integrator('zvode', method='bdf', nsteps=10000)
-    r.set_initial_value(f0).set_f_params(L, nmax, mu, Wi, Wf, tau, xi, scale)
+    r.set_initial_value(f0).set_f_params(L, nmax, mu, Wi, Wf, tau, xi)
     tf = 2*tau
     r.integrate(tf)
     ff = r.y
-    Ef = E(ff, L, nmax, mu, Wi, xi, scale)
+    Ef = E(ff, L, nmax, mu, Wi, xi)
     Q = Ef - E0
     f0m = f0.reshape((L, nmax+1))
     ffm = ff.reshape((L, nmax+1))
     p = sum([1 - abs(np.vdot(ffi, f0i))**2 for (ffi, f0i) in zip(ffm, f0m)])/L
-    b0 = b(f0, L, nmax, mu, Wi, xi, scale)
-    bf = b(ff, L, nmax, mu, Wi, xi, scale)
+    b0 = b(f0, L, nmax, mu, Wi, xi)
+    bf = b(ff, L, nmax, mu, Wi, xi)
     return [r.successful(), tau, ff, Ef, Q, p, b0, bf]
 
-nthreads = 2
+nthreads = 35
 
-resi = 0#int(sys.argv[3])
+resi =int(sys.argv[2])
 resdir = os.path.expanduser('~/Dropbox/Amazon EC2/Simulation Results/CTDG Numba/')
 while os.path.exists(resdir + resifile(resi)):
     resi += 1
 
 seed = int(sys.argv[1])
-Delta = 0.1
+Delta = 0
 def main():
     start = datetime.datetime.now()
 
     f0 = np.zeros(L*dim, dtype=complex)
 
-    inputdir = os.path.expanduser('~/Documents/Simulation Results/Canonical Transformation Dynamical Gutzwiller 2/')
+    inputdir = os.path.expanduser('~/Dropbox/Amazon EC2/Simulation Results/CTDG Input/')
     with open(inputdir + "input_" + str(L) + "_" + str(seed) + "_" + str(Delta) + ".bin") as f:
         for i in range(L):
             double = f.read(8)
@@ -79,9 +78,9 @@ def main():
             im = f.read(8)
             f0[i] = struct.unpack('d', re)[0] + struct.unpack('d', im)[0]*1j
 
-    E0 = E(f0, L, nmax, mu, Wi, xi, scale)
+    E0 = E(f0, L, nmax, mu, Wi, xi)
 
-    taus = np.linspace(1e-11, 1.1e-11, nthreads)
+    taus = np.linspace(1e-10, 1e-9, nthreads)
     ntaus = len(taus)
 
     pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage(), ' ', progressbar.Bar(), ' ', progressbar.Timer()], maxval=ntaus).start()
@@ -94,8 +93,8 @@ def main():
     pres = []
     b0res = []
     bfres = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
-        futures = [executor.submit(runtau, f0, E0, scale*tau) for tau in taus]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
+        futures = [executor.submit(runtau, f0, E0, tau) for tau in taus]
         for future in pbar(concurrent.futures.as_completed(futures)):
             result = future.result()
             success.append(result[0])
@@ -107,13 +106,21 @@ def main():
             b0res.append(result[6])
             bfres.append(result[7])
 
+    success = [x for (y, x) in sorted(zip(taures, success))]
+    ffres = [x for (y, x) in sorted(zip(taures, ffres))]
+    Efres = [x for (y, x) in sorted(zip(taures, Efres))]
+    Qres = [x for (y, x) in sorted(zip(taures, Qres))]
+    pres = [x for (y, x) in sorted(zip(taures, pres))]
+    b0res = [x for (y, x) in sorted(zip(taures, b0res))]
+    bfres = [x for (y, x) in sorted(zip(taures, bfres))]
+    taures.sort()
+
     end = datetime.datetime.now()
 
     resultsfile = open(resdir + 'res.'+str(resi)+'.txt', 'w')
     resultsstr = ''
     resultsstr += 'seed['+str(resi)+']='+str(seed)+';\n'
     resultsstr += 'xires['+str(resi)+']='+mathematica(xi)+';\n'
-    resultsstr += 'scale['+str(resi)+']='+mathematica(scale)+';\n'
     resultsstr += 'f0res['+str(resi)+']='+mathematica(f0)+';\n'
     resultsstr += 'E0res['+str(resi)+']='+mathematica(E0)+';\n'
     resultsstr += 'success['+str(resi)+']='+mathematica(success)+';\n'
